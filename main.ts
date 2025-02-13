@@ -4,25 +4,17 @@ import { Graph } from "./db/db_operations.ts";
 import { edges_map } from "./lines/lines_edges.ts";
 import { lines as stations_map } from "./lines/lines_create_lines.ts";
 import { schema_queries } from "./db/schema_queries.ts";
-// import { SURREAL_HTTP_QUERY } from "./fetch/http_query.ts";
-// import { HTTP_DB_RESULTS } from "./types/types_lines.ts";
-
-const my_db_connection: DB_CONNECTION = {
-  url: "http://127.0.0.1:8000/rpc",
-  username: "root",
-  password: "root_password",
-  namespace: "subway_ns",
-  database: "subway_db",
-};
+import { Surreal_HTTP_Query } from "./fetch/http_query.ts";
+import { HTTP_DB_RESULTS } from "./types/types_lines.ts";
 
 const http_db_connection: CONNECTION_CONFIG = {
   auth: {
-    username: my_db_connection.username,
-    password: my_db_connection.password,
+    username: "root",
+    password: "root_password",
   },
   db: {
-    name: my_db_connection.database,
-    namespace: my_db_connection.namespace,
+    name: "subway_db",
+    namespace: "subway_ns",
   },
   http: {
     protocol: "http",
@@ -46,6 +38,7 @@ async function main() {
     if (db_instance.status === "connected") {
       const g = new Graph(db_instance, edges_map, schema_queries, stations_map);
 
+      // Perform RPC query
       await g.execute_query("INFO FOR TABLE has;");
 
       const fields = (
@@ -60,10 +53,18 @@ async function main() {
       await g.execute_query(index_connects_to_in);
       await g.execute_query(index_connects_to_out);
 
-      // const shq = new SURREAL_HTTP_QUERY(http_db_connection);
-      // const r = await shq.fetch_database(query) as HTTP_DB_RESULTS[];
+      // Perform HTTP query
+      const query_http = "SELECT * FROM station WHERE line_id = line:4";
+      const shq = new Surreal_HTTP_Query(http_db_connection);
+      const res = (await shq.fetch_database(query_http)) as HTTP_DB_RESULTS[];
 
-      // console.log(g.result);
+      // Perform RPC query
+      const query_rpc = "SELECT * FROM station WHERE line_id = line:5";
+
+      await g.execute_query(query_rpc);
+
+      console.log("RESULT HTTP QUERY, line_id = line:4 :: ", res);
+      console.log("RESULT HTTP QUERY, line_id = line:5 :: ", g.result);
     } else {
       console.error("Failed to connect to DB");
     }
