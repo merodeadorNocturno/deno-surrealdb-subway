@@ -8,4 +8,7 @@ export const schema_queries: SCHEMA_QUERIES = [
   "DEFINE FIELD line_id ON TABLE station TYPE record<line>;",
   "DEFINE TABLE has TYPE RELATION IN line OUT station;",
   "DEFINE TABLE connects_to TYPE RELATION IN station OUT station;",
+  "DEFINE INDEX IF NOT EXISTS unique_relationships ON TABLE connects_to FIELDS in, out UNIQUE;",
+  "DEFINE INDEX IF NOT EXISTS connects_to_in_index ON TABLE connects_to FIELDS in;",
+  "DEFINE INDEX IF NOT EXISTS connects_to_out_index ON TABLE connects_to FIELDS out;",
 ];

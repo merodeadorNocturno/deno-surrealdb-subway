@@ -8,7 +8,7 @@ import {
 import { async_iterator } from "../utils/utils_async_iterator.ts";
 import { generate_station_id } from "../utils/utils_stations.ts";
 
-export class Graph {
+export class DB_Operations {
   private db: Surreal;
   private edges_map: EDGES_MAP;
   private schema_queries: SCHEMA_QUERIES;

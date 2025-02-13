@@ -1,6 +1,6 @@
 import { connect_to_db, db } from "./db/index.ts";
-import { CONNECTION_CONFIG, DB_CONNECTION } from "./types/types_db.ts";
-import { Graph } from "./db/db_operations.ts";
+import { CONNECTION_CONFIG } from "./types/types_db.ts";
+import { DB_Operations } from "./db/db_operations.ts";
 import { edges_map } from "./lines/lines_edges.ts";
 import { lines as stations_map } from "./lines/lines_create_lines.ts";
 import { schema_queries } from "./db/schema_queries.ts";
@@ -25,33 +25,27 @@ const http_db_connection: CONNECTION_CONFIG = {
 };
 
 async function main() {
-  const index_connects_to =
-    "DEFINE INDEX IF NOT EXISTS unique_relationships ON TABLE connects_to FIELDS in, out UNIQUE;";
-  const index_connects_to_in =
-    "DEFINE INDEX IF NOT EXISTS connects_to_in_index ON TABLE connects_to FIELDS in;";
-  const index_connects_to_out =
-    "DEFINE INDEX IF NOT EXISTS connects_to_out_index ON TABLE connects_to FIELDS out;";
-
   try {
     const db_instance = await connect_to_db(db, http_db_connection);
 
     if (db_instance.status === "connected") {
-      const g = new Graph(db_instance, edges_map, schema_queries, stations_map);
+      const dbo = new DB_Operations(
+        db_instance,
+        edges_map,
+        schema_queries,
+        stations_map,
+      );
 
       // Perform RPC query
-      await g.execute_query("INFO FOR TABLE has;");
+      await dbo.execute_query("INFO FOR TABLE has;");
 
       const fields = (
-        g.result?.[0]?.result as { fields: Record<string, unknown> }
+        dbo.result?.[0]?.result as { fields: Record<string, unknown> }
       )?.fields;
 
       if (Object.keys(fields).length === 0) {
-        await g.generate_db();
+        await dbo.generate_db();
       }
-
-      await g.execute_query(index_connects_to);
-      await g.execute_query(index_connects_to_in);
-      await g.execute_query(index_connects_to_out);
 
       // Perform HTTP query
       const query_http = "SELECT * FROM station WHERE line_id = line:4";
@@ -61,10 +55,10 @@ async function main() {
       // Perform RPC query
       const query_rpc = "SELECT * FROM station WHERE line_id = line:5";
 
-      await g.execute_query(query_rpc);
+      await dbo.execute_query(query_rpc);
 
       console.log("RESULT HTTP QUERY, line_id = line:4 :: ", res);
-      console.log("RESULT HTTP QUERY, line_id = line:5 :: ", g.result);
+      console.log("RESULT HTTP QUERY, line_id = line:5 :: ", dbo.result);
     } else {
       console.error("Failed to connect to DB");
     }
