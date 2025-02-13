@@ -9,10 +9,10 @@ import { schema_queries } from "./db/schema_queries.ts";
 
 const my_db_connection: DB_CONNECTION = {
   url: "http://127.0.0.1:8000/rpc",
-  username: "yay_root",
-  password: "yay_root",
-  namespace: "yay_leads",
-  database: "yay_leads",
+  username: "root",
+  password: "root_password",
+  namespace: "subway_ns",
+  database: "subway_db",
 };
 
 const http_db_connection: CONNECTION_CONFIG = {

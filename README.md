@@ -13,7 +13,7 @@
     1.  **Clone the repository:**
 
         ```bash
-        git clone https://github.com/YOUR_USERNAME/YOUR_REPOSITORY_NAME.git
+        git clone https://github.com/merodeadorNocturno/deno-surrealdb-subway.git
         cd deno-surrealdb-subway
         ```
         (Replace with your actual repository URL)
