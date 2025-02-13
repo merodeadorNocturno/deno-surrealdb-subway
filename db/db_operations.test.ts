@@ -4,7 +4,7 @@ import {
   assertRejects,
 } from "https://deno.land/std@0.217.0/assert/mod.ts";
 import { FakeSurreal } from "./fake_surreal.ts";
-import { Graph } from "./db_operations.ts";
+import { DB_Operations } from "./db_operations.ts";
 import Surreal, { ConnectionStatus } from "@surrealdb/surrealdb";
 
 // Mock data
@@ -16,9 +16,9 @@ const mockSchemaQueries = ["DEFINE TABLE test_table SCHEMAFULL;"];
 
 const mockStationsMap = new Map([["1", ["A", "B"]]]);
 
-Deno.test("Graph Class - Constructor", () => {
+Deno.test("DB_Operations Class - Constructor", () => {
   const db = new FakeSurreal();
-  const graph = new Graph(
+  const graph = new DB_Operations(
     db as any,
     mockEdgesMap,
     mockSchemaQueries,
@@ -43,9 +43,9 @@ Deno.test("Graph Class - Constructor", () => {
   );
 });
 
-Deno.test("Graph Class - execute_queries - success", async () => {
+Deno.test("DB_Operations Class - execute_queries - success", async () => {
   const db = new FakeSurreal();
-  const graph = new Graph(
+  const graph = new DB_Operations(
     db as any,
     mockEdgesMap,
     mockSchemaQueries,
@@ -58,9 +58,9 @@ Deno.test("Graph Class - execute_queries - success", async () => {
   assertEquals(db.queries, queries, "Queries not executed correctly.");
 });
 
-Deno.test("Graph Class - create_schema - success", async () => {
+Deno.test("DB_Operations Class - create_schema - success", async () => {
   const db = new FakeSurreal();
-  const graph = new Graph(
+  const graph = new DB_Operations(
     db as any,
     mockEdgesMap,
     mockSchemaQueries,
@@ -76,9 +76,9 @@ Deno.test("Graph Class - create_schema - success", async () => {
   );
 });
 
-Deno.test("Graph Class - store_lines - success", async () => {
+Deno.test("DB_Operations Class - store_lines - success", async () => {
   const db = new FakeSurreal();
-  const graph = new Graph(
+  const graph = new DB_Operations(
     db as any,
     mockEdgesMap,
     mockSchemaQueries,
@@ -95,9 +95,9 @@ Deno.test("Graph Class - store_lines - success", async () => {
   );
 });
 
-Deno.test("Graph Class - store_stations - success", async () => {
+Deno.test("DB_Operations Class - store_stations - success", async () => {
   const db = new FakeSurreal();
-  const graph = new Graph(
+  const graph = new DB_Operations(
     db as any,
     mockEdgesMap,
     mockSchemaQueries,
@@ -125,35 +125,38 @@ Deno.test("Graph Class - store_stations - success", async () => {
   assertEquals(db.queries[3], relation_B, "relation_B not executed correctly.");
 });
 
-Deno.test("Graph Class - create_relations_connects_to - success", async () => {
+Deno.test(
+  "DB_Operations Class - create_relations_connects_to - success",
+  async () => {
+    const db = new FakeSurreal();
+    const graph = new DB_Operations(
+      db as any,
+      mockEdgesMap,
+      mockSchemaQueries,
+      mockStationsMap,
+    );
+
+    await graph["create_relations_connects_to"]();
+
+    const fromToQuery = `RELATE station:A->connects_to->station:B`;
+    const toFromQuery = `RELATE station:B->connects_to->station:A`;
+
+    assertEquals(
+      db.queries[0],
+      fromToQuery,
+      "From-To relation query is incorrect",
+    );
+    assertEquals(
+      db.queries[1],
+      toFromQuery,
+      "To-From relation query is incorrect",
+    );
+  },
+);
+
+Deno.test("DB_Operations Class - generate_db - success", async () => {
   const db = new FakeSurreal();
-  const graph = new Graph(
-    db as any,
-    mockEdgesMap,
-    mockSchemaQueries,
-    mockStationsMap,
-  );
-
-  await graph["create_relations_connects_to"]();
-
-  const fromToQuery = `RELATE station:A->connects_to->station:B`;
-  const toFromQuery = `RELATE station:B->connects_to->station:A`;
-
-  assertEquals(
-    db.queries[0],
-    fromToQuery,
-    "From-To relation query is incorrect",
-  );
-  assertEquals(
-    db.queries[1],
-    toFromQuery,
-    "To-From relation query is incorrect",
-  );
-});
-
-Deno.test("Graph Class - generate_db - success", async () => {
-  const db = new FakeSurreal();
-  const graph = new Graph(
+  const graph = new DB_Operations(
     db as any,
     mockEdgesMap,
     mockSchemaQueries,
@@ -166,11 +169,11 @@ Deno.test("Graph Class - generate_db - success", async () => {
 });
 
 // --- Error Cases ---
-Deno.test("Graph Class - execute_queries - failure", async () => {
+Deno.test("DB_Operations Class - execute_queries - failure", async () => {
   const db = new FakeSurreal();
   db.shouldThrow = true;
   db.errorMessage = "Failed to execute database queries.";
-  const graph = new Graph(
+  const graph = new DB_Operations(
     db as any,
     mockEdgesMap,
     mockSchemaQueries,
@@ -189,11 +192,11 @@ Deno.test("Graph Class - execute_queries - failure", async () => {
   );
 });
 
-Deno.test("Graph Class - create_schema - failure", async () => {
+Deno.test("DB_Operations Class - create_schema - failure", async () => {
   const db = new FakeSurreal();
   db.shouldThrow = true;
   db.errorMessage = "Failed to create database schema.";
-  const graph = new Graph(
+  const graph = new DB_Operations(
     db as any,
     mockEdgesMap,
     mockSchemaQueries,
@@ -210,11 +213,11 @@ Deno.test("Graph Class - create_schema - failure", async () => {
   );
 });
 
-Deno.test("Graph Class - store_lines - failure", async () => {
+Deno.test("DB_Operations Class - store_lines - failure", async () => {
   const db = new FakeSurreal();
   db.shouldThrow = true;
   db.errorMessage = "Failed to store lines in the database.";
-  const graph = new Graph(
+  const graph = new DB_Operations(
     db as any,
     mockEdgesMap,
     mockSchemaQueries,
@@ -231,12 +234,12 @@ Deno.test("Graph Class - store_lines - failure", async () => {
   );
 });
 
-Deno.test("Graph Class - generate_db - failure", async () => {
+Deno.test("DB_Operations Class - generate_db - failure", async () => {
   const db = new FakeSurreal();
   db.shouldThrow = true;
   db.errorMessage = "Error during database generation, rolling back:";
 
-  const graph = new Graph(
+  const graph = new DB_Operations(
     db as any,
     mockEdgesMap,
     mockSchemaQueries,
