@@ -58,7 +58,7 @@ async function main() {
       await dbo.execute_query(query_rpc);
 
       console.log("RESULT HTTP QUERY, line_id = line:4 :: ", res);
-      console.log("RESULT HTTP QUERY, line_id = line:5 :: ", dbo.result);
+      console.log("RESULT RPC QUERY, line_id = line:5 :: ", dbo.result);
     } else {
       console.error("Failed to connect to DB");
     }
